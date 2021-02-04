@@ -21,11 +21,14 @@
         <div class="diffs">
             <nav>
                 <ul>
-                    <li class="active"><a href="/home">首页</a></li>
-                    <li><a href="/crontab">定时设定</a></li>
-                    <li><a href="/diff">对比工具</a></li>
-                    <li><a href="/changepwd">修改密码</a></li>
-                    <li><a href="/logout">退出</a></li>
+                    <li class="active"><a href="./home">首页</a></li>
+                    <li><a href="./crontab">定时设定</a></li>
+                    <li><a href="./diff">对比工具</a></li>
+                    <li><a href="./shareCode">Share Code</a></li>
+                    <li><a href="./diy">自定义脚本</a></li>
+                    <li><a href="./log">日志查询</a></li>
+                    <li><a href="./changepwd">修改密码</a></li>
+                    <li><a href="./logout">退出</a></li>
                 </ul>
             </nav>
             <header>
@@ -49,6 +52,7 @@
             </div>
             <div id="qrcode"></div>
             <div class="info">请使用京东手机APP扫码</div>
+            <div class="qframe-close" title="关闭">✖</div>
         </div>
     </div>
     <script>
@@ -63,7 +67,7 @@
                 theme: 'dracula'
             });
             let timeStamp = (new Date()).getTime()
-            $.get("/api/config/config?t="+timeStamp, function (data) {
+            $.get("./api/config/config?t="+timeStamp, function (data) {
                 editor.setValue(data);
             });
 
@@ -87,11 +91,11 @@
             function checkLogin() {
                 var timeId = setInterval(() => {
                     let timeStamp = (new Date()).getTime()
-                    $.get('/cookie?t='+timeStamp, function (data) {
+                    $.get('./cookie?t='+timeStamp, function (data) {
                         if (data.err == 0) {
-                            clearInterval(timeId)
-                            $("#qrcontainer").addClass("hidden")
-                            $("#refresh_qrcode").addClass("hidden")
+                            clearInterval(timeId);
+                            $("#qrcontainer").addClass("hidden");
+                            $("#refresh_qrcode").addClass("hidden");
                             userCookie = data.cookie
                             Swal.fire({
                                 title: "cookie已获取",
@@ -104,8 +108,8 @@
                                 copyToClip(userCookie);
                             })
                         } else if (data.err == 21) {
-                            clearInterval(timeId)
-                            $("#refresh_qrcode").removeClass("hidden")
+                            clearInterval(timeId);
+                            $("#refresh_qrcode").removeClass("hidden");
                         }
                     })
                 }, 3000)
@@ -114,7 +118,7 @@
 
             function get_code() {
                 let timeStamp = (new Date()).getTime()
-                $.get('/qrcode?t='+timeStamp, function (data) {
+                $.get('./qrcode?t='+timeStamp, function (data) {
                     if (data.err == 0) {
                         $("#qrcontainer").removeClass("hidden")
                         $("#refresh_qrcode").addClass("hidden")
@@ -130,14 +134,19 @@
                 });
             }
 
-            $('.refresh').click(get_code)
+            $('.refresh').click(get_code);
 
-            $('#cookietools').click(get_code)
+            $('#cookietools').click(get_code);
+
+            $('.qframe-close').click(function () {
+                $("#qrcontainer").addClass("hidden");
+                $("#refresh_qrcode").addClass("hidden");
+            });
 
             $('#save').click(function () {
                 var confContent = editor.getValue();
                 let timeStamp = (new Date()).getTime()
-                $.post('/api/save?t='+timeStamp, { content: confContent, name: "config.sh" }, function (data) {
+                $.post('./api/save?t='+timeStamp, { content: confContent, name: "config.sh" }, function (data) {
                     let icon = (data.err == 0) ? "success" : "error"
                     Swal.fire({
                         title:data.title,
