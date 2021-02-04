@@ -1,7 +1,7 @@
 # 在crontab.list中，家目录请不要写成 ~ ，必须输入家目录的完整路径 /data/data/com.termux/files/home
 PATH=/data/data/com.termux/files/usr/bin
 
-# 更新lxk0301大佬的js脚本和EvineDeng的shell脚本，日志记录在脚本目录下log文件夹中：
+# 更新lxk0301大佬的js脚本，日志记录在脚本目录下log文件夹中：
 55 5-23 * * * bash /data/data/com.termux/files/home/storage/shared/jd/git_pull.sh >> /data/data/com.termux/files/home/storage/shared/jd/log/git_pull.log 2>&1
 
 # 删除 RmLogDaysAgo 指定天数以前的旧日志，本行为不记录日志：
@@ -25,7 +25,7 @@ PATH=/data/data/com.termux/files/usr/bin
 17 9,22 * * * bash /data/data/com.termux/files/home/storage/shared/jd/jd.sh jd_cash
 0 0 * * * bash /data/data/com.termux/files/home/storage/shared/jd/jd.sh jd_car_exchange
 2 0 * * * bash /data/data/com.termux/files/home/storage/shared/jd/jd.sh jd_club_lottery
-27 13 * * * bash bash /data/data/com.termux/files/home/storage/shared/jd/jd.sh jd_crazy_joy
+27 13 * * * bash /data/data/com.termux/files/home/storage/shared/jd/jd.sh jd_crazy_joy
 54 2-23/3 * * * bash /data/data/com.termux/files/home/storage/shared/jd/jd.sh jd_daily_egg
 20 * * * * bash /data/data/com.termux/files/home/storage/shared/jd/jd.sh jd_dreamFactory
 29 7,12,18 * * * bash /data/data/com.termux/files/home/storage/shared/jd/jd.sh jd_fruit
