@@ -6,14 +6,14 @@ PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 ## 依次输入which node、which npm、which git、which perl，检查node、npm、git、perl的路径，如路径不在刚刚修改的PATH中，则将路径添加在PATH最前面，并以冒号分隔
 
 ############ 第3步 ############
-## 命令行中输入 crontab -l ，将输出内容添加在本行之下：
+## 命令行中输入 crontab -l ，将输出内容添加在本行之下（如反馈没有定时任务则可以跳过本步）：
 
 
 
 ############ 第4步 ############
 ## 修改以下所有脚本路径和cron时间。
 
-# 更新lxk0301大佬的js脚本和EvineDeng的shell脚本，并替换相关参数：
+# 更新lxk0301大佬的js脚本，并替换相关参数：
 55 * * * * bash /home/myid/jd/git_pull.sh >> /home/myid/jd/log/git_pull.log 2>&1
 
 # 删除 RmLogDaysAgo 指定天数以前的旧日志，本行为不记录日志：
