@@ -1,25 +1,7 @@
 #!/usr/bin/env bash
 
-## Author: Evine Deng
-## Source: https://github.com/EvineDeng/jd-base
-## Modified： 2021-01-13
-## Version： v3.2.2
-
 ## 判断环境
-if [ -f /proc/1/cgroup ]
-then
-  isDocker=$(cat /proc/1/cgroup | grep docker)
-else
-  isDocker=""
-fi
-
-if [ -z "${isDocker}" ]
-then
-  ShellDir=$(cd $(dirname $0); pwd)
-else
-  ShellDir=${JD_DIR}
-fi
-
+ShellDir=${JD_DIR:-$(cd $(dirname $0); pwd)}
 LogDir=${ShellDir}/log
 
 ## 导入配置文件
