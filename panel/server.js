@@ -12,23 +12,30 @@ var bodyParser = require('body-parser');
 var got = require('got');
 var path = require('path');
 var fs = require('fs');
+var { execSync } = require('child_process');
 
 var rootPath = path.resolve(__dirname, '..')
 // config.sh 文件所在目录
-var confFile = path.join(rootPath,'config/config.sh');
+var confFile = path.join(rootPath, 'config/config.sh');
 // config.sh.sample 文件所在目录
-var sampleFile = path.join(rootPath,'sample/config.sh.sample');
+var sampleFile = path.join(rootPath, 'sample/config.sh.sample');
 // crontab.list 文件所在目录
-var crontabFile = path.join(rootPath,'config/crontab.list');
+var crontabFile = path.join(rootPath, 'config/crontab.list');
 // config.sh 文件备份目录
-var confBakDir = path.join(rootPath,'config/bak/');;
+var confBakDir = path.join(rootPath, 'config/bak/');
 // auth.json 文件目录
-var authConfigFile = path.join(rootPath,'config/auth.json');
+var authConfigFile = path.join(rootPath, 'config/auth.json');
+// Share Code 文件目录
+var shareCodeDir = path.join(rootPath, 'log/jd_get_share_code/');
+// diy.sh 文件目录
+var diyFile = path.join(rootPath, 'config/diy.sh');
+// 日志目录
+var logPath = path.join(rootPath, 'log/');
 
 var authError = "错误的用户名密码，请重试";
 var loginFaild = "请先登录!";
 
-var configString = "config sample crontab";
+var configString = "config sample crontab shareCode diy";
 
 var s_token, cookies, guid, lsid, lstoken, okl_token, token, userCookie = ""
 
@@ -206,10 +213,14 @@ function bakConfFile(file) {
             oldConfContent = getFileContentByName(crontabFile);
             fs.writeFileSync(bakConfFile, oldConfContent);
             break;
+        case "diy.sh":
+            oldConfContent = getFileContentByName(diyFile);
+            fs.writeFileSync(bakConfFile, oldConfContent);
+            break;
         default:
             break;
     }
-    
+
 }
 
 /**
@@ -224,6 +235,10 @@ function saveNewConf(file, content) {
             break;
         case "crontab.list":
             fs.writeFileSync(crontabFile, content);
+            execSync('crontab ' + crontabFile);
+            break;
+        case "diy.sh":
+            fs.writeFileSync(diyFile, content);
             break;
         default:
             break;
@@ -242,6 +257,32 @@ function getFileContentByName(fileName) {
     return '';
 }
 
+/**
+ * 获取目录中最后修改的文件的路径
+ * @param dir 目录路径
+ * @returns {string} 最新文件路径
+ */
+function getLastModifyFilePath(dir) {
+    var filePath = '';
+
+    if (fs.existsSync(dir)) {
+        var lastmtime = 0;
+
+        var arr = fs.readdirSync(dir);
+
+        arr.forEach(function (item) {
+            var fullpath = path.join(dir, item);
+            var stats = fs.statSync(fullpath);
+            if (stats.isFile()) {
+                if (stats.mtimeMs >= lastmtime) {
+                    filePath = fullpath;
+                }
+            }
+        });
+    }
+    return filePath;
+}
+
 
 var app = express();
 app.use(session({
@@ -249,8 +290,8 @@ app.use(session({
     resave: true,
     saveUninitialized: true
 }));
-app.use(bodyParser.json({limit: '50mb'}));
-app.use(bodyParser.urlencoded({limit: '50mb', extended: true }));
+app.use(bodyParser.json({ limit: '50mb' }));
+app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }));
 app.use(express.static(path.join(__dirname, 'public')));
 
 /**
@@ -258,7 +299,7 @@ app.use(express.static(path.join(__dirname, 'public')));
  */
 app.get('/', function (request, response) {
     if (request.session.loggedin) {
-        response.redirect('/home');
+        response.redirect('./home');
     } else {
         response.sendFile(path.join(__dirname + '/public/auth.html'));
     }
@@ -271,7 +312,7 @@ app.get('/changepwd', function (request, response) {
     if (request.session.loggedin) {
         response.sendFile(path.join(__dirname + '/public/pwd.html'));
     } else {
-        response.redirect('/');
+        response.redirect('./');
     }
 });
 
@@ -340,6 +381,13 @@ app.get('/api/config/:key', function (request, response) {
                 case 'crontab':
                     content = getFileContentByName(crontabFile);
                     break;
+                case 'shareCode':
+                    let shareCodeFile = getLastModifyFilePath(shareCodeDir);
+                    content = getFileContentByName(shareCodeFile);
+                    break;
+                case 'diy':
+                    content = getFileContentByName(diyFile);
+                    break;
                 default:
                     break;
             }
@@ -360,7 +408,7 @@ app.get('/home', function (request, response) {
     if (request.session.loggedin) {
         response.sendFile(path.join(__dirname + '/public/home.html'));
     } else {
-        response.redirect('/');
+        response.redirect('./');
     }
 
 });
@@ -372,7 +420,19 @@ app.get('/diff', function (request, response) {
     if (request.session.loggedin) {
         response.sendFile(path.join(__dirname + '/public/diff.html'));
     } else {
-        response.redirect('/');
+        response.redirect('./');
+    }
+
+});
+
+/**
+ * Share Code 页面
+ */
+app.get('/shareCode', function (request, response) {
+    if (request.session.loggedin) {
+        response.sendFile(path.join(__dirname + '/public/shareCode.html'));
+    } else {
+        response.redirect('./');
     }
 
 });
@@ -384,7 +444,19 @@ app.get('/crontab', function (request, response) {
     if (request.session.loggedin) {
         response.sendFile(path.join(__dirname + '/public/crontab.html'));
     } else {
-        response.redirect('/');
+        response.redirect('./');
+    }
+
+});
+
+/**
+ * 自定义脚本 页面
+ */
+app.get('/diy', function (request, response) {
+    if (request.session.loggedin) {
+        response.sendFile(path.join(__dirname + '/public/diy.html'));
+    } else {
+        response.redirect('./');
     }
 
 });
@@ -445,7 +517,7 @@ app.post('/changepass', function (request, response) {
  */
 app.get('/logout', function (request, response) {
     request.session.destroy()
-    response.redirect('/');
+    response.redirect('./');
 
 });
 
@@ -458,9 +530,66 @@ app.post('/api/save', function (request, response) {
         let postContent = request.body.content;
         let postfile = request.body.name;
         saveNewConf(postfile, postContent);
-        response.send({ err: 0, title:"保存成功! ", msg: "将自动刷新页面查看修改后的 " + postfile + " 文件" });
+        response.send({ err: 0, title: "保存成功! ", msg: "将自动刷新页面查看修改后的 " + postfile + " 文件" });
     } else {
-        response.send({ err: 1, title:"保存失败! ",msg: loginFaild });
+        response.send({ err: 1, title: "保存失败! ", msg: loginFaild });
+    }
+
+});
+
+/**
+ * 日志查询 页面
+ */
+app.get('/log', function (request, response) {
+    if (request.session.loggedin) {
+        response.sendFile(path.join(__dirname + '/public/tasklog.html'));
+    } else {
+        response.redirect('./');
+    }
+});
+
+/**
+ * 日志列表
+ */
+app.get('/api/logs', function (request, response) {
+    if (request.session.loggedin) {
+        var fileList = fs.readdirSync(logPath, 'utf-8');
+        var dirs = [];
+        for (var i = 0; i < fileList.length; i++) {
+            var stat = fs.lstatSync(logPath + fileList[i]);
+            // 是目录，需要继续
+            if (stat.isDirectory()) {
+                var fileListTmp = fs.readdirSync(logPath + '/' + fileList[i], 'utf-8');
+                fileListTmp.reverse();
+                var dirMap = {
+                    "dirName": fileList[i],
+                    "files": fileListTmp
+                }
+                dirs.push(dirMap);
+            }
+        }
+        var result = {
+            "dirs": dirs,
+        };
+        response.send(result);
+
+    } else {
+        response.redirect('/');
+    }
+
+});
+
+/**
+ * 日志文件
+ */
+app.get('/api/logs/:dir/:file', function (request, response) {
+    if (request.session.loggedin) {
+        var filePath = logPath + request.params.dir + '/' + request.params.file;
+        var content = getFileContentByName(filePath);
+        response.setHeader("Content-Type", "text/plain");
+        response.send(content);
+    } else {
+        response.redirect('/');
     }
 
 });
